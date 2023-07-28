@@ -36,6 +36,7 @@ func Subscribe(wsUrl string, poolAddress common.Address, done <-chan bool, wgGro
 			return nil
 		case err := <-sub.Err():
 			fmt.Printf("Error at: %v\n", time.Now())
+			fmt.Printf("Error: %v\n", err)
 			return err
 		case vLog := <-logs:
 			fmt.Printf("Log at at: %v\n", time.Now())
