@@ -30,8 +30,8 @@ type LiquidationCallEventEntity struct {
 
 type LiquidationCallEventEntityExpanded struct {
 	liquidationCallEventEntity LiquidationCallEventEntity
-	caInWei                    *big.Int
-	daInWei                    *big.Int
+	caInWei                    float64
+	daInWei                    float64
 	timestamp                  time.Time
 }
 

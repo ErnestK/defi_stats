@@ -3,8 +3,7 @@ package liquidation_event
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
+	"sync"
 	"time"
 
 	"github.com/ernest_k/defi_stats/lib"
@@ -12,20 +11,17 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/joho/godotenv"
 )
 
-func Subscribe() {
-	defer fmt.Printf("Terminated program at: %v\n", time.Now())
+func Subscribe(wsUrl string, poolAddress common.Address, done <-chan bool, wgGroup *sync.WaitGroup) error {
+	defer wgGroup.Done()
 
-	err := godotenv.Load()
-	lib.Check(err)
-	client, err := ethclient.Dial(os.Getenv("PLG_MN_ALCH_WS_URL"))
+	client, err := ethclient.Dial(wsUrl)
 	lib.Check(err)
 
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{
-			common.HexToAddress(os.Getenv("AAVE_PLG_MN_POOL_ADDRESS")),
+			poolAddress,
 		},
 		Topics: [][]common.Hash{{AaveLiquidationEventSig()}},
 	}
@@ -36,31 +32,45 @@ func Subscribe() {
 	fmt.Printf("Started to subscribe at: %v\n", time.Now())
 	for {
 		select {
+		case <-done:
+			return nil
 		case err := <-sub.Err():
 			fmt.Printf("Error at: %v\n", time.Now())
-			log.Fatal(err)
+			return err
 		case vLog := <-logs:
 			fmt.Printf("Log at at: %v\n", time.Now())
 			liquidationCallEventEntity := LiquidationCallEventEntity{}
 			DeserializeEventLog(&liquidationCallEventEntity, vLog.Data)
 
+			fmt.Println("before define")
+			ShowLiquidationEventInfo(&liquidationCallEventEntity, vLog)
+			liquidationCallEventEntity.CollateralAsset = common.HexToAddress(vLog.Topics[1].Hex())
+			liquidationCallEventEntity.DebtAsset = common.HexToAddress(vLog.Topics[2].Hex())
+			liquidationCallEventEntity.User = common.HexToAddress(vLog.Topics[3].Hex())
+			ShowLiquidationEventInfo(&liquidationCallEventEntity, vLog)
+			fmt.Println("after define")
 			caMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.CollateralAsset, client)
 			daMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.DebtAsset, client)
 
 			caPrice := GetAssetPrice(liquidationCallEventEntity.CollateralAsset, caMetadata.Decimal, client)
 			daPrice := GetAssetPrice(liquidationCallEventEntity.DebtAsset, daMetadata.Decimal, client)
 
-			ShowLiquidationEventInfo(&liquidationCallEventEntity, vLog)
 			fmt.Println("ca name: ", caMetadata.Name)
 			fmt.Println("caPrice: ", caPrice)
 			fmt.Println("da name: ", daMetadata.Name)
 			fmt.Println("daPrice: ", daPrice)
 
-			// liquidationCallEventEntity.CollateralAsset
-			// liquidationCallEventEntity.DebtAsset
-			// liquidationCallEventEntity.User
+			l1 := LiquidationCallEventEntityExpanded{
+				liquidationCallEventEntity: liquidationCallEventEntity,
+				caInWei:                    caPrice,
+				daInWei:                    daPrice,
+				timestamp:                  time.Now(),
+			}
+			fmt.Println(l1, "l1")
+
 			fmt.Println("--------------------------------------------------------")
-			// LiquidationCallEventEntityExpanded()
+
+			return nil
 		}
 	}
 }

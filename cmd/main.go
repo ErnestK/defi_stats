@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
-	"github.com/ernest_k/defi_stats/influx_repo"
+	"github.com/ernest_k/defi_stats/influx_repositores"
 	"github.com/ernest_k/defi_stats/lib"
 	"github.com/ernest_k/defi_stats/liquidation_event"
 
@@ -27,7 +26,7 @@ func main() {
 		liquidation_event.Log()
 	}
 	if arg1 == "2" {
-		liquidation_event.Subscribe()
+		liquidation_event.SubscriptionManager()
 	}
 	if arg1 == "3" {
 		addres := common.HexToAddress("0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270")
@@ -37,9 +36,6 @@ func main() {
 		fmt.Println("price: ", price)
 	}
 	if arg1 == "4" {
-		influx_repo.WriteTest()
-	}
-	if arg1 == "5" {
-		fmt.Println("time.Now()", time.Now())
+		influx_repositores.WriteTest()
 	}
 }
