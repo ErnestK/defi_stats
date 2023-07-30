@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 func Subscribe(chainName string, wsUrl string, poolAddress common.Address, done <-chan bool, wgGroup *sync.WaitGroup) error {
@@ -18,6 +19,7 @@ func Subscribe(chainName string, wsUrl string, poolAddress common.Address, done 
 
 	client, err := ethclient.Dial(wsUrl)
 	lib.Check(err)
+	defer client.Close()
 
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{
@@ -25,8 +27,14 @@ func Subscribe(chainName string, wsUrl string, poolAddress common.Address, done 
 		},
 		Topics: [][]common.Hash{{AaveLiquidationEventSig()}},
 	}
+	// logs := make(chan types.Log)
+	// sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
+
 	logs := make(chan types.Log)
-	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
+	sub := event.Resubscribe(1*time.Second, func(ctx context.Context) (event.Subscription, error) {
+		return client.SubscribeFilterLogs(ctx, query, logs)
+	})
+	defer sub.Unsubscribe()
 	lib.Check(err)
 
 	fmt.Printf("Started to subscribe in chain %v at: %v\n", chainName, time.Now())
