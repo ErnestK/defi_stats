@@ -48,7 +48,7 @@ func SubscriptionManager() {
 	go Subscribe(
 		"Eth mainnet",
 		os.Getenv("ETH_MN_ALC_WS_URL"),
-		common.HexToAddress(os.Getenv("AAVE3_PLG_MN_POOL_ADDRESS")),
+		common.HexToAddress(os.Getenv("AAVE3_ETH_MN_POOL_ADDRESS")),
 		done,
 		&wgGroup,
 	)
