@@ -13,7 +13,9 @@ import (
 )
 
 func SubscriptionManager() {
-	defer fmt.Printf("Terminated program at: %v\n", time.Now())
+	defer func() {
+		fmt.Printf("Terminated program at: %v\n", time.Now())
+	}()
 	var wgGroup sync.WaitGroup
 
 	err := godotenv.Load()
