@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func Subscribe(wsUrl string, poolAddress common.Address, done <-chan bool, wgGroup *sync.WaitGroup) error {
+func Subscribe(chainName string, wsUrl string, poolAddress common.Address, done <-chan bool, wgGroup *sync.WaitGroup) error {
 	defer wgGroup.Done()
 
 	client, err := ethclient.Dial(wsUrl)
@@ -29,17 +29,18 @@ func Subscribe(wsUrl string, poolAddress common.Address, done <-chan bool, wgGro
 	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
 	lib.Check(err)
 
-	fmt.Printf("Started to subscribe at: %v\n", time.Now())
+	fmt.Printf("Started to subscribe in chain %v at: %v\n", chainName, time.Now())
 	for {
 		select {
 		case <-done:
+			fmt.Printf("Read done in chain %v\n", chainName)
 			return nil
 		case err := <-sub.Err():
-			fmt.Printf("Error at: %v\n", time.Now())
+			fmt.Printf("Error in chain %v at: %v\n", chainName, time.Now())
 			fmt.Printf("Error: %v\n", err)
 			return err
 		case vLog := <-logs:
-			fmt.Printf("Log at at: %v\n", time.Now())
+			fmt.Printf("Log at chain %v at: %v\n", chainName, time.Now())
 			liquidationCallEventEntity := LiquidationCallEventEntity{}
 			DeserializeEventLog(&liquidationCallEventEntity, vLog.Data)
 
@@ -65,6 +66,7 @@ func Subscribe(wsUrl string, poolAddress common.Address, done <-chan bool, wgGro
 				liquidationCallEventEntity: liquidationCallEventEntity,
 				caInWei:                    caPrice,
 				daInWei:                    daPrice,
+				chainName:                  chainName,
 				timestamp:                  time.Now(),
 			}
 			fmt.Println(l1, "l1")

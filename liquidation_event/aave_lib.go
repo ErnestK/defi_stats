@@ -32,6 +32,7 @@ type LiquidationCallEventEntityExpanded struct {
 	liquidationCallEventEntity LiquidationCallEventEntity
 	caInWei                    float64
 	daInWei                    float64
+	chainName                  string
 	timestamp                  time.Time
 }
 

@@ -26,36 +26,36 @@ func SubscriptionManager() {
 	signal.Notify(signalChan, os.Interrupt)
 	go cleanup(signalChan, done, &wgGroup)
 
-	// polygon alchemy
 	wgGroup.Add(1)
 	go Subscribe(
+		"Polygon mainnet",
 		os.Getenv("PLG_MN_ALCH_WS_URL"),
 		common.HexToAddress(os.Getenv("AAVE3_PLG_MN_POOL_ADDRESS")),
 		done,
 		&wgGroup,
 	)
 
-	// arbitrum alchemy
 	wgGroup.Add(1)
 	go Subscribe(
+		"Arbitrum mainnet",
 		os.Getenv("ARB_MN_ALC_WS_URL"),
 		common.HexToAddress(os.Getenv("AAVE3_ARB_MN_POOL_ADDRESS")),
 		done,
 		&wgGroup,
 	)
 
-	// eth alchemy
 	wgGroup.Add(1)
 	go Subscribe(
+		"Eth mainnet",
 		os.Getenv("ETH_MN_ALC_WS_URL"),
 		common.HexToAddress(os.Getenv("AAVE3_PLG_MN_POOL_ADDRESS")),
 		done,
 		&wgGroup,
 	)
 
-	// optimism alchemy
 	wgGroup.Add(1)
 	go Subscribe(
+		"Optimism mainnet",
 		os.Getenv("OPT_MN_ALC_WS_URL"),
 		common.HexToAddress(os.Getenv("AAVE3_OPT_MN_POOL_ADDRESS")),
 		done,
@@ -66,7 +66,7 @@ func SubscriptionManager() {
 
 func cleanup(chanel <-chan os.Signal, done chan<- bool, wgGroup *sync.WaitGroup) {
 	<-chanel
-	done <- true
+	close(done)
 	fmt.Println("cleanup")
 	wgGroup.Wait()
 	fmt.Println("all goroutines finished, exit")
