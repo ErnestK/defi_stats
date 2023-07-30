@@ -47,8 +47,8 @@ func ShowBlockData(blockNum int64, client *ethclient.Client) {
 	}
 }
 
-func ShowBlockDate(blockNum int64, client *ethclient.Client) {
-	block, err := client.BlockByNumber(context.Background(), big.NewInt(int64(blockNum)))
+func ShowBlockDate(blockNum *big.Int, client *ethclient.Client) {
+	block, err := client.BlockByNumber(context.Background(), blockNum)
 	if err != nil {
 		log.Fatal(err)
 	}

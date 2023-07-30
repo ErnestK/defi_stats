@@ -32,10 +32,10 @@ func Log() {
 	fmt.Println("to block:", latestBlock)
 
 	query := ethereum.FilterQuery{
-		FromBlock: big.NewInt(polygonBlockWithEvent),
-		ToBlock:   big.NewInt(polygonBlockWithEvent),
+		FromBlock: big.NewInt(latestBlock - 100_000),
+		ToBlock:   big.NewInt(latestBlock),
 		Addresses: []common.Address{
-			common.HexToAddress(os.Getenv("AAVE_PLG_MN_POOL_ADDRESS")),
+			common.HexToAddress(os.Getenv("AAVE3_PLG_MN_POOL_ADDRESS")),
 		},
 		Topics: [][]common.Hash{{AaveLiquidationEventSig()}},
 	}
@@ -45,9 +45,11 @@ func Log() {
 	fmt.Println("All Logs length: ", len(eventLogs))
 
 	for _, vLog := range eventLogs {
-		liquidationCallEventEntity := LiquidationCallEventEntity{}
-		DeserializeEventLog(&liquidationCallEventEntity, vLog.Data)
-		ShowLiquidationEventInfo(&liquidationCallEventEntity, vLog)
-		lib.ShowBlockDate(polygonBlockWithEvent, client)
+		// liquidationCallEventEntity := LiquidationCallEventEntity{}
+		// DeserializeEventLog(&liquidationCallEventEntity, vLog.Data)
+		// ShowLiquidationEventInfo(&liquidationCallEventEntity, vLog)
+
+		// lib.ShowBlockDate(big.NewInt(int64(polygonBlockWithEvent)), client)
+		lib.ShowBlockDate(big.NewInt(int64(vLog.BlockNumber)), client)
 	}
 }
