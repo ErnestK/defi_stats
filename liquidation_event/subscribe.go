@@ -30,7 +30,8 @@ func Subscribe(chainName string, wsUrl string, poolAddress common.Address, done 
 	// logs := make(chan types.Log)
 	// sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
 
-	logs := make(chan types.Log)
+	// https://github.com/ethereum/go-ethereum/issues/22266
+	logs := make(chan types.Log, 1_000)
 	sub := event.Resubscribe(1*time.Second, func(ctx context.Context) (event.Subscription, error) {
 		return client.SubscribeFilterLogs(ctx, query, logs)
 	})
@@ -52,13 +53,10 @@ func Subscribe(chainName string, wsUrl string, poolAddress common.Address, done 
 			liquidationCallEventEntity := LiquidationCallEventEntity{}
 			DeserializeEventLog(&liquidationCallEventEntity, vLog.Data)
 
-			fmt.Println("before define")
-			ShowLiquidationEventInfo(&liquidationCallEventEntity, vLog)
 			liquidationCallEventEntity.CollateralAsset = common.HexToAddress(vLog.Topics[1].Hex())
 			liquidationCallEventEntity.DebtAsset = common.HexToAddress(vLog.Topics[2].Hex())
 			liquidationCallEventEntity.User = common.HexToAddress(vLog.Topics[3].Hex())
 			ShowLiquidationEventInfo(&liquidationCallEventEntity, vLog)
-			fmt.Println("after define")
 			caMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.CollateralAsset, client)
 			daMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.DebtAsset, client)
 
@@ -70,16 +68,17 @@ func Subscribe(chainName string, wsUrl string, poolAddress common.Address, done 
 			fmt.Println("da name: ", daMetadata.Name)
 			fmt.Println("daPrice: ", daPrice)
 
-			l1 := LiquidationCallEventEntityExpanded{
+			entity := LiquidationCallEventEntityExpanded{
 				liquidationCallEventEntity: liquidationCallEventEntity,
 				caInWei:                    caPrice,
 				daInWei:                    daPrice,
 				chainName:                  chainName,
 				timestamp:                  time.Now(),
 			}
-			fmt.Println(l1, "l1")
+			fmt.Println("full event: ", entity)
 
 			fmt.Println("--------------------------------------------------------")
+			// write in influx
 
 			return nil
 		}
