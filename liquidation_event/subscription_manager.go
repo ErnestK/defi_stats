@@ -33,6 +33,7 @@ func SubscriptionManager() {
 		common.HexToAddress(os.Getenv("AAVE3_PLG_MN_POOL_ADDRESS")),
 		done,
 		&wgGroup,
+		common.HexToAddress(os.Getenv("AAVE3_PLG_MN_ORACLE_ADDRESS")),
 	)
 
 	wgGroup.Add(1)
@@ -42,6 +43,7 @@ func SubscriptionManager() {
 		common.HexToAddress(os.Getenv("AAVE3_ARB_MN_POOL_ADDRESS")),
 		done,
 		&wgGroup,
+		common.HexToAddress(os.Getenv("AAVE3_ARB_MN_ORACLE_ADDRESS")),
 	)
 
 	wgGroup.Add(1)
@@ -51,6 +53,7 @@ func SubscriptionManager() {
 		common.HexToAddress(os.Getenv("AAVE3_ETH_MN_POOL_ADDRESS")),
 		done,
 		&wgGroup,
+		common.HexToAddress(os.Getenv("AAVE3_ETH_MN_ORACLE_ADDRESS")),
 	)
 
 	wgGroup.Add(1)
@@ -60,6 +63,7 @@ func SubscriptionManager() {
 		common.HexToAddress(os.Getenv("AAVE3_OPT_MN_POOL_ADDRESS")),
 		done,
 		&wgGroup,
+		common.HexToAddress(os.Getenv("AAVE3_OPT_MN_ORACLE_ADDRESS")),
 	)
 	wgGroup.Wait()
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"os"
 	"strconv"
 	"time"
 
@@ -60,9 +59,7 @@ func ShowLiquidationEventInfo(liquidationCallEventEntity *LiquidationCallEventEn
 	fmt.Println("------------------------------------------------------")
 }
 
-func GetAssetPrice(tokenAddress common.Address, decimal uint8, client *ethclient.Client) float64 {
-	address := os.Getenv("AAVE_PLG_MN_ORACLE_ADDRESS")
-
+func GetAssetPrice(tokenAddress common.Address, decimal uint8, client *ethclient.Client, oracleAddress common.Address) float64 {
 	opts := bind.CallOpts{
 		Pending:     false,
 		From:        common.Address{},
@@ -70,7 +67,7 @@ func GetAssetPrice(tokenAddress common.Address, decimal uint8, client *ethclient
 		Context:     context.Background(),
 	}
 
-	instance, err := aave.NewAave(common.HexToAddress(address), client)
+	instance, err := aave.NewAave(oracleAddress, client)
 	lib.Check(err)
 
 	tokenValue, err := instance.GetAssetPrice(&opts, tokenAddress)

@@ -32,7 +32,7 @@ func main() {
 		addres := common.HexToAddress("0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270")
 
 		tokeEntity := lib.CoinMetadataForAddress(addres, client)
-		price := liquidation_event.GetAssetPrice(addres, tokeEntity.Decimal, client)
+		price := liquidation_event.GetAssetPrice(addres, tokeEntity.Decimal, client, common.HexToAddress(os.Getenv("AAVE3_PLG_MN_ORACLE_ADDRESS")))
 		fmt.Println("price: ", price)
 	}
 	if arg1 == "4" {

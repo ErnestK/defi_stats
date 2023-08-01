@@ -14,7 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 )
 
-func Subscribe(chainName string, wsUrl string, poolAddress common.Address, done <-chan bool, wgGroup *sync.WaitGroup) error {
+func Subscribe(chainName string, wsUrl string, poolAddress common.Address, done <-chan bool, wgGroup *sync.WaitGroup, oracleAddress common.Address) error {
 	defer wgGroup.Done()
 
 	client, err := ethclient.Dial(wsUrl)
@@ -60,8 +60,8 @@ func Subscribe(chainName string, wsUrl string, poolAddress common.Address, done 
 			caMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.CollateralAsset, client)
 			daMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.DebtAsset, client)
 
-			caPrice := GetAssetPrice(liquidationCallEventEntity.CollateralAsset, caMetadata.Decimal, client)
-			daPrice := GetAssetPrice(liquidationCallEventEntity.DebtAsset, daMetadata.Decimal, client)
+			caPrice := GetAssetPrice(liquidationCallEventEntity.CollateralAsset, caMetadata.Decimal, client, oracleAddress)
+			daPrice := GetAssetPrice(liquidationCallEventEntity.DebtAsset, daMetadata.Decimal, client, oracleAddress)
 
 			fmt.Println("ca name: ", caMetadata.Name)
 			fmt.Println("caPrice: ", caPrice)
