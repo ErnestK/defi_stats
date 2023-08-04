@@ -38,6 +38,7 @@ func Subscribe(subsPackage SubscriptionPackageToStart) {
 		case err := <-sub.Err():
 			fmt.Printf("Error in chain %v at: %v\n", subsPackage.ChainName, time.Now())
 			fmt.Printf("Error: %v\n", err)
+			subsPackage.Interrupted <- subsPackage
 			return
 		case vLog := <-logs:
 			fmt.Printf("Log at chain %v at: %v\n", subsPackage.ChainName, time.Now())
