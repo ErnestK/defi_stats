@@ -1,27 +1,22 @@
 package influx_repositores
 
 import (
-	"fmt"
-	"math/rand"
-	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/ernest_k/defi_stats/lib"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
-func WriteTest() {
-	client := influxdb2.NewClientWithOptions(
-		"http://localhost:8086",
-		"r_g71oNQ==",
-		influxdb2.DefaultOptions(),
-	)
+type EventLogEntry struct {
+	exchangeName string
+	chainName    string
+	timestamps   []time.Time
+}
+
+func WriteEventLog(eventLogEntry EventLogEntry) {
+	client := client()
 	defer client.Close()
 
-	org := "defi_stats"
-	bucket := "prod"
-	writeAPI := client.WriteAPI(org, bucket)
+	writeAPI := writeAPI(client)
 	defer writeAPI.Flush()
 
 	errorsCh := writeAPI.Errors()
@@ -29,37 +24,16 @@ func WriteTest() {
 	go logErrors(errorsCh)
 
 	// write some points
-	for i := 0; i < 100; i++ {
-		// create point
+	for _, timestamp := range eventLogEntry.timestamps {
 		p := influxdb2.NewPoint(
-			"aave3_polygon",
+			"event_logs",
 			map[string]string{
-				"id":       fmt.Sprintf("rack_%v", i%10),
-				"vendor":   "AWS",
-				"hostname": fmt.Sprintf("host_%v", i%100),
+				"exchange":   eventLogEntry.exchangeName,
+				"chain_name": eventLogEntry.chainName,
 			},
-			map[string]interface{}{
-				"temperature": rand.Float64() * 80.0,
-				"disk_free":   rand.Float64() * 1000.0,
-				"disk_total":  (i/10 + 1) * 1000000,
-				"mem_total":   (i/100 + 1) * 10000000,
-				"mem_free":    rand.Uint64(),
-			},
-			time.Now())
+			map[string]interface{}{},
+			timestamp)
 		// write asynchronously
 		writeAPI.WritePoint(p)
-	}
-}
-
-func logErrors(errorsCh <-chan error) {
-	for influx_err := range errorsCh {
-		absPath, err := filepath.Abs("logs/influxdb_errors.txt")
-		lib.Check(err)
-		f, err := os.Create(absPath)
-		lib.Check(err)
-
-		_, err = f.WriteString(influx_err.Error())
-		lib.Check(err)
-		f.Close()
 	}
 }

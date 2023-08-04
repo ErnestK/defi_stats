@@ -47,15 +47,14 @@ func ShowBlockData(blockNum int64, client *ethclient.Client) {
 	}
 }
 
-func ShowBlockDate(blockNum *big.Int, client *ethclient.Client) {
+func ShowBlockDate(blockNum *big.Int, client *ethclient.Client) time.Time {
 	block, err := client.BlockByNumber(context.Background(), blockNum)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	header := block.Header()
-	timestamp := time.Unix(int64(header.Time), 0)
-	fmt.Println("block created at:", timestamp)
+	return time.Unix(int64(header.Time), 0)
 }
 
 func ContractABIFor(path string) abi.ABI {

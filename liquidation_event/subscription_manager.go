@@ -14,6 +14,16 @@ import (
 
 const NUMBER_OF_WS_LISTEN = 4
 
+type SubscriptionPackageToStart struct {
+	ChainName     string
+	WsUrl         string
+	PoolAddress   common.Address
+	OracleAddress common.Address
+	Interrupted   chan<- SubscriptionPackageToStart
+	DoneCh        <-chan bool
+	WaitGroup     *sync.WaitGroup
+}
+
 func SubscriptionManager() {
 	defer func() {
 		fmt.Printf("Terminated program at: %v\n", time.Now())
@@ -96,14 +106,4 @@ func cleanup(chanel <-chan os.Signal, done chan<- bool, wgGroup *sync.WaitGroup)
 	wgGroup.Wait()
 	fmt.Println("all goroutines finished, exit")
 	os.Exit(1)
-}
-
-type SubscriptionPackageToStart struct {
-	ChainName     string
-	WsUrl         string
-	PoolAddress   common.Address
-	OracleAddress common.Address
-	Interrupted   chan<- SubscriptionPackageToStart
-	DoneCh        <-chan bool
-	WaitGroup     *sync.WaitGroup
 }
