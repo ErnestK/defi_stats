@@ -39,6 +39,6 @@ func main() {
 		influx_repositores.WriteTest()
 	}
 	if arg1 == "5" {
-		liquidation_event.SubscriptionManager()
+		liquidation_event.SubscriptionManagerNew()
 	}
 }

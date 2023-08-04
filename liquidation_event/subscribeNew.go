@@ -35,7 +35,6 @@ func SubscribeNew(chainName string, wsUrl string, poolAddress common.Address, do
 	sub := event.Resubscribe(1*time.Second, func(ctx context.Context) (event.Subscription, error) {
 		return client.SubscribeFilterLogs(ctx, query, logs)
 	})
-	defer sub.Unsubscribe()
 	lib.Check(err)
 
 	fmt.Printf("Started to subscribe in chain %v at: %v\n", chainName, time.Now())
@@ -43,6 +42,7 @@ func SubscribeNew(chainName string, wsUrl string, poolAddress common.Address, do
 		select {
 		case <-done:
 			fmt.Printf("Read done in chain %v\n", chainName)
+			sub.Unsubscribe()
 			return nil
 		case err := <-sub.Err():
 			fmt.Printf("Error in chain %v at: %v\n", chainName, time.Now())
