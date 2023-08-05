@@ -37,7 +37,7 @@ func Log(fromTime time.Time) {
 		fmt.Println("to block:", latestBlock)
 
 		query := ethereum.FilterQuery{
-			FromBlock: big.NewInt(latestBlock - 1_000_000),
+			FromBlock: big.NewInt(latestBlock - STEP_FOR_LOG_BLOCK),
 			ToBlock:   big.NewInt(latestBlock),
 			Addresses: []common.Address{
 				common.HexToAddress(os.Getenv("AAVE3_PLG_MN_POOL_ADDRESS")),

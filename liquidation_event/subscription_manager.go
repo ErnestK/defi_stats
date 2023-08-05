@@ -95,6 +95,7 @@ func SubscriptionManager() {
 		time.Sleep(time.Second)
 		interSubscription.WaitGroup.Add(1)
 		fmt.Printf("Subscription for chain %v is down, restaring %v\n", interSubscription.ChainName, time.Now())
+		fmt.Printf("----------------------------------------------------\n")
 		go Subscribe(interSubscription)
 	}
 }
