@@ -12,16 +12,16 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func Subscribe(subsPackage SubscriptionPackageToStart) {
-	defer subsPackage.WaitGroup.Done()
+func Subscribe(eventBundle EventBundle) {
+	defer eventBundle.waitGroup.Done()
 
-	client, err := ethclient.Dial(subsPackage.WsUrl)
+	client, err := ethclient.Dial(eventBundle.connectUrl)
 	lib.Check(err)
 	defer client.Close()
 
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{
-			subsPackage.PoolAddress,
+			eventBundle.poolAddress,
 		},
 		Topics: [][]common.Hash{{AaveLiquidationEventSig()}},
 	}
@@ -29,30 +29,26 @@ func Subscribe(subsPackage SubscriptionPackageToStart) {
 	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
 	lib.Check(err)
 
-	fmt.Printf("Started to subscribe in chain %v at: %v\n", subsPackage.ChainName, time.Now())
+	fmt.Printf("Started to subscribe in chain %v at: %v\n", eventBundle.chainName, time.Now())
 	for {
 		select {
-		case <-subsPackage.DoneCh:
-			fmt.Printf("Read done in chain %v\n", subsPackage.ChainName)
+		case <-eventBundle.doneCh:
+			fmt.Printf("Read done in chain %v\n", eventBundle.chainName)
 			return
 		case err := <-sub.Err():
-			fmt.Printf("Error in chain %v at: %v, err: %v\n", subsPackage.ChainName, time.Now(), err)
-			subsPackage.Interrupted <- subsPackage
+			fmt.Printf("Error in chain %v at: %v, err: %v\n", eventBundle.chainName, time.Now(), err)
+			eventBundle.interrupted <- eventBundle
 			return
 		case vLog := <-logs:
-			fmt.Printf("Log at chain %v at: %v\n", subsPackage.ChainName, time.Now())
+			fmt.Printf("Log at chain %v at: %v\n", eventBundle.chainName, time.Now())
 			liquidationCallEventEntity := LiquidationCallEventEntity{}
-			DeserializeEventLog(&liquidationCallEventEntity, vLog.Data)
-
-			liquidationCallEventEntity.CollateralAsset = common.HexToAddress(vLog.Topics[1].Hex())
-			liquidationCallEventEntity.DebtAsset = common.HexToAddress(vLog.Topics[2].Hex())
-			liquidationCallEventEntity.User = common.HexToAddress(vLog.Topics[3].Hex())
+			DeserializeEventLog(&liquidationCallEventEntity, vLog)
 			ShowLiquidationEventInfo(&liquidationCallEventEntity, vLog)
 			caMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.CollateralAsset, client)
 			daMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.DebtAsset, client)
 
-			caPrice := GetAssetPrice(liquidationCallEventEntity.CollateralAsset, caMetadata.Decimal, client, subsPackage.OracleAddress)
-			daPrice := GetAssetPrice(liquidationCallEventEntity.DebtAsset, daMetadata.Decimal, client, subsPackage.OracleAddress)
+			caPrice := GetAssetPrice(liquidationCallEventEntity.CollateralAsset, caMetadata.Decimal, client, eventBundle.oracleAddress)
+			daPrice := GetAssetPrice(liquidationCallEventEntity.DebtAsset, daMetadata.Decimal, client, eventBundle.oracleAddress)
 
 			fmt.Println("ca name: ", caMetadata.Name)
 			fmt.Println("caPrice: ", caPrice)
@@ -63,7 +59,7 @@ func Subscribe(subsPackage SubscriptionPackageToStart) {
 				liquidationCallEventEntity: liquidationCallEventEntity,
 				caInWei:                    caPrice,
 				daInWei:                    daPrice,
-				chainName:                  subsPackage.ChainName,
+				chainName:                  eventBundle.chainName,
 				timestamp:                  time.Now(),
 			}
 			fmt.Println("full event: ", entity)

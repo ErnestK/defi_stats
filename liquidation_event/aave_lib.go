@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/ernest_k/defi_stats/lib"
@@ -27,6 +29,16 @@ type LiquidationCallEventEntity struct {
 	ReceiveAToken              bool
 }
 
+type EventBundle struct {
+	chainName     string
+	connectUrl    string
+	poolAddress   common.Address
+	oracleAddress common.Address
+	interrupted   chan<- EventBundle
+	doneCh        <-chan bool
+	waitGroup     *sync.WaitGroup
+}
+
 type LiquidationCallEventEntityExpanded struct {
 	liquidationCallEventEntity LiquidationCallEventEntity
 	caInWei                    float64
@@ -35,20 +47,19 @@ type LiquidationCallEventEntityExpanded struct {
 	timestamp                  time.Time
 }
 
-func DeserializeEventLog(liquidationCallEventEntity *LiquidationCallEventEntity, vLogData []byte) {
+func DeserializeEventLog(liquidationCallEventEntity *LiquidationCallEventEntity, vLog types.Log) {
 	liqudationEventName := "LiquidationCall"
 	contractAbi := lib.ContractABIFor("abi/aave_pool.json")
 
-	err := contractAbi.UnpackIntoInterface(liquidationCallEventEntity, liqudationEventName, vLogData)
+	err := contractAbi.UnpackIntoInterface(liquidationCallEventEntity, liqudationEventName, vLog.Data)
 	lib.Check(err)
+
+	liquidationCallEventEntity.CollateralAsset = common.HexToAddress(vLog.Topics[1].Hex())
+	liquidationCallEventEntity.DebtAsset = common.HexToAddress(vLog.Topics[2].Hex())
+	liquidationCallEventEntity.User = common.HexToAddress(vLog.Topics[3].Hex())
 }
 
 func ShowLiquidationEventInfo(liquidationCallEventEntity *LiquidationCallEventEntity, vLog types.Log) {
-	fmt.Println("vLog.Topics[0].Hex():", vLog.Topics[0].Hex())
-	fmt.Println("vLog.Topics[1].Hex():", vLog.Topics[1].Hex())
-	fmt.Println("vLog.Topics[2].Hex():", vLog.Topics[2].Hex())
-	fmt.Println("vLog.Topics[3].Hex():", vLog.Topics[3].Hex())
-	fmt.Println("------------------------------------------------------")
 	fmt.Println("liquidationCallEventEntity.CollateralAsset", liquidationCallEventEntity.CollateralAsset)
 	fmt.Println("liquidationCallEventEntity.DebtAsset", liquidationCallEventEntity.DebtAsset)
 	fmt.Println("liquidationCallEventEntity.User", liquidationCallEventEntity.User)
@@ -85,4 +96,13 @@ func GetAssetPrice(tokenAddress common.Address, decimal uint8, client *ethclient
 func AaveLiquidationEventSig() common.Hash {
 	liquidationEventSig := []byte("LiquidationCall(address,address,address,uint256,uint256,address,bool)")
 	return crypto.Keccak256Hash(liquidationEventSig)
+}
+
+func cleanup(chanel <-chan os.Signal, done chan<- bool, wgGroup *sync.WaitGroup) {
+	<-chanel
+	close(done)
+	fmt.Println("cleanup")
+	wgGroup.Wait()
+	fmt.Println("all goroutines finished, exit")
+	os.Exit(1)
 }
