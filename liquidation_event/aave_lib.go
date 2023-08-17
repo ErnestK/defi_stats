@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"math/big"
 	"os"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/ernest_k/defi_stats/lib"
 	"github.com/ernest_k/defi_stats/lib/aave"
@@ -19,16 +17,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-type LiquidationCallEventEntity struct {
-	CollateralAsset            common.Address
-	DebtAsset                  common.Address
-	User                       common.Address
-	DebtToCover                *big.Int
-	LiquidatedCollateralAmount *big.Int
-	Liquidator                 common.Address
-	ReceiveAToken              bool
-}
-
 type EventBundle struct {
 	chainName     string
 	connectUrl    string
@@ -37,14 +25,6 @@ type EventBundle struct {
 	interrupted   chan<- EventBundle
 	doneCh        <-chan bool
 	waitGroup     *sync.WaitGroup
-}
-
-type LiquidationCallEventEntityExpanded struct {
-	liquidationCallEventEntity LiquidationCallEventEntity
-	caInWei                    float64
-	daInWei                    float64
-	chainName                  string
-	timestamp                  time.Time
 }
 
 func DeserializeEventLog(liquidationCallEventEntity *LiquidationCallEventEntity, vLog types.Log) {
@@ -89,6 +69,30 @@ func GetAssetPrice(tokenAddress common.Address, decimal uint8, client *ethclient
 	lib.Check(err)
 
 	result := floatTokenValue / math.Pow(10, float64(decimal))
+
+	return result
+}
+
+func GetAssetPriceAaveV3(tokenAddress common.Address, client *ethclient.Client, oracleAddress common.Address) float64 {
+	opts := bind.CallOpts{
+		Pending:     false,
+		From:        common.Address{},
+		BlockNumber: nil,
+		Context:     context.Background(),
+	}
+
+	instance, err := aave.NewAave(oracleAddress, client)
+	lib.Check(err)
+
+	tokenValue, err := instance.GetAssetPrice(&opts, tokenAddress)
+	lib.Check(err)
+
+	stringValue := tokenValue.String()
+	floatTokenValue, err := strconv.ParseFloat(stringValue, 64)
+	lib.Check(err)
+
+	// for v3 base price uas and decimal 8
+	result := floatTokenValue / math.Pow(10, float64(8))
 
 	return result
 }

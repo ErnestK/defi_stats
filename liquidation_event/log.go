@@ -52,13 +52,23 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 			caMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.CollateralAsset, client)
 			daMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.DebtAsset, client)
 
-			caPrice := GetAssetPrice(liquidationCallEventEntity.CollateralAsset, caMetadata.Decimal, client, eventBundle.oracleAddress)
-			daPrice := GetAssetPrice(liquidationCallEventEntity.DebtAsset, daMetadata.Decimal, client, eventBundle.oracleAddress)
+			caPrice := GetAssetPriceAaveV3(liquidationCallEventEntity.CollateralAsset, client, eventBundle.oracleAddress)
+			daPrice := GetAssetPriceAaveV3(liquidationCallEventEntity.DebtAsset, client, eventBundle.oracleAddress)
 
 			fmt.Println("ca name: ", caMetadata.Name)
 			fmt.Println("caPrice: ", caPrice)
 			fmt.Println("da name: ", daMetadata.Name)
 			fmt.Println("daPrice: ", daPrice)
+			entity := LiquidationCallEventEntityWithMeta{
+				liquidationCallEventEntity: liquidationCallEventEntity,
+				caInUsd:                    caPrice,
+				daInUsd:                    daPrice,
+				chainName:                  eventBundle.chainName,
+				caName:                     caMetadata.Name,
+				daName:                     daMetadata.Name,
+				timestamp:                  time.Now(),
+			}
+			fmt.Println("full event: ", entity)
 		}
 		if timestamp.Before(fromTime) {
 			return

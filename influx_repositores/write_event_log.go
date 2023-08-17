@@ -6,13 +6,20 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
-type EventLogEntry struct {
-	exchangeName string
-	chainName    string
-	timestamps   []time.Time
+type LiquiadatedEventData interface {
+	getLiquidator() string
+	getLiquidateUser() string
+	getCollaterelAssetInUsd() float64
+	getDebtAssetInUsd() float64
+	getChainName() string
+	getCaName() string
+	getDaName() string
+	getExchangeName() string
+	getTimestamp() time.Time
 }
 
-func WriteEventLog(eventLogEntry EventLogEntry) {
+func WriteEventLog(liquiadatedEventData LiquiadatedEventData) {
+	// todo: maybe should open once and pass it
 	client := client()
 	defer client.Close()
 
@@ -20,20 +27,23 @@ func WriteEventLog(eventLogEntry EventLogEntry) {
 	defer writeAPI.Flush()
 
 	errorsCh := writeAPI.Errors()
-	// Create go proc for reading and logging errors
 	go logErrors(errorsCh)
 
-	// write some points
-	for _, timestamp := range eventLogEntry.timestamps {
-		p := influxdb2.NewPoint(
-			"event_logs",
-			map[string]string{
-				"exchange":   eventLogEntry.exchangeName,
-				"chain_name": eventLogEntry.chainName,
-			},
-			map[string]interface{}{},
-			timestamp)
-		// write asynchronously
-		writeAPI.WritePoint(p)
-	}
+	p := influxdb2.NewPoint(
+		"event_logs",
+		map[string]string{
+			"exchange":         liquiadatedEventData.getExchangeName(),
+			"chain_name":       liquiadatedEventData.getChainName(),
+			"liquiadator":      liquiadatedEventData.getLiquidator(),
+			"liquiadated_user": liquiadatedEventData.getLiquidateUser(),
+			"ca_name":          liquiadatedEventData.getCaName(),
+			"da_name":          liquiadatedEventData.getDaName(),
+		},
+		map[string]interface{}{
+			"collaterel_price_usd": liquiadatedEventData.getCollaterelAssetInUsd(),
+			"debt_price_usd":       liquiadatedEventData.getDebtAssetInUsd(),
+		},
+		liquiadatedEventData.getTimestamp(),
+	)
+	writeAPI.WritePoint(p)
 }
