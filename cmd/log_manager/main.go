@@ -18,4 +18,7 @@ func main() {
 		today := time.Now()
 		liquidation_event.LogManager(today)
 	}
+	// if arg1 == "3" {
+
+	// }
 }

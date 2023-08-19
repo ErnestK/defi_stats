@@ -16,6 +16,7 @@ import (
 const STEP_FOR_LOG_BLOCK = 10_000
 
 func Log(fromTime time.Time, eventBundle EventBundle) {
+	fmt.Println("------------------------------------------------------------")
 	timestamp := time.Date(2042, 8, 7, 0, 0, 0, 0, time.UTC)
 	err := godotenv.Load()
 	lib.Check(err)
@@ -31,7 +32,7 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 		startWithBlock := latestBlock - STEP_FOR_LOG_BLOCK
 
 		query := ethereum.FilterQuery{
-			FromBlock: big.NewInt(latestBlock - STEP_FOR_LOG_BLOCK),
+			FromBlock: big.NewInt(startWithBlock),
 			ToBlock:   big.NewInt(latestBlock),
 			Addresses: []common.Address{
 				eventBundle.poolAddress,
@@ -42,13 +43,16 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 		lib.Check(err)
 
 		for _, vLog := range eventLogs {
-			timestamp = lib.ShowBlockDate(big.NewInt(int64(vLog.BlockNumber)), client)
+			blockNumber := big.NewInt(int64(vLog.BlockNumber))
+			timestamp = lib.ShowBlockDate(blockNumber, client)
 			fmt.Println("block created at:", timestamp)
+			fmt.Println("block num:", blockNumber)
 
 			liquidationCallEventEntity := LiquidationCallEventEntity{}
 			DeserializeEventLog(&liquidationCallEventEntity, vLog)
 			fmt.Println("for chain: ", eventBundle.chainName)
 			ShowLiquidationEventInfo(&liquidationCallEventEntity, vLog)
+
 			caMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.CollateralAsset, client)
 			daMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.DebtAsset, client)
 

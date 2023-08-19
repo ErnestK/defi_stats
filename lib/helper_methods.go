@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	erc20 "github.com/ernest_k/defi_stats/lib/erc20"
+	"github.com/ernest_k/defi_stats/lib/erc20"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -43,7 +43,6 @@ func ShowBlockData(blockNum int64, client *ethclient.Client) {
 		fmt.Println("Gas Price:", tx.GasPrice().String())
 		fmt.Println("Nonce:", tx.Nonce())
 		fmt.Println("Data:", tx.Data())
-		fmt.Println("-----------------------------------")
 	}
 }
 
@@ -69,6 +68,7 @@ func ContractABIFor(path string) abi.ABI {
 }
 
 func CoinMetadataForAddress(address common.Address, client *ethclient.Client) TokenMetadataEntity {
+	var name string
 	instance, err := erc20.NewErc20(address, client)
 	Check(err)
 
@@ -79,8 +79,12 @@ func CoinMetadataForAddress(address common.Address, client *ethclient.Client) To
 		Context:     context.Background(),
 	}
 
-	name, err := instance.Name(&opts)
-	Check(err)
+	name, err = instance.Name(&opts)
+	if err != nil {
+		// TODO: some coin stores name not in string, need to add additional contract
+		// https://ethereum.stackexchange.com/questions/130586/ethers-js-error-when-calling-symbol-on-maker-mkr-contract-but-no-problem-fo
+		name = "na"
+	}
 
 	decimal, err := instance.Decimals(&opts)
 	Check(err)
