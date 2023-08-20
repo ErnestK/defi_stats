@@ -28,6 +28,13 @@ func Check(e error) {
 	}
 }
 
+func CheckWithMessage(e error, message string) {
+	if e != nil {
+		log.Println(message)
+		log.Fatal(e)
+	}
+}
+
 func ShowBlockData(blockNum int64, client *ethclient.Client) {
 	block, err := client.BlockByNumber(context.Background(), big.NewInt(int64(blockNum)))
 	if err != nil {
@@ -47,12 +54,11 @@ func ShowBlockData(blockNum int64, client *ethclient.Client) {
 }
 
 func ShowBlockDate(blockNum *big.Int, client *ethclient.Client) time.Time {
-	block, err := client.BlockByNumber(context.Background(), blockNum)
+	header, err := client.HeaderByNumber(context.Background(), blockNum)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	header := block.Header()
 	return time.Unix(int64(header.Time), 0)
 }
 

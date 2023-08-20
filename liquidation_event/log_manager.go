@@ -14,7 +14,7 @@ import (
 
 func LogManager(fromTime time.Time) {
 	defer func() {
-		fmt.Printf("Terminated program at: %v\n", time.Now())
+		fmt.Printf("Program finish succesfully at: %v\n", time.Now())
 	}()
 	var wgGroup sync.WaitGroup
 

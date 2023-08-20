@@ -22,10 +22,10 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 	lib.Check(err)
 
 	client, err := ethclient.Dial(eventBundle.connectUrl)
-	lib.Check(err)
+	lib.CheckWithMessage(err, "cannot connect to url: "+eventBundle.connectUrl)
 
 	latestBlockTemp, err := client.BlockNumber(context.Background())
-	lib.Check(err)
+	lib.CheckWithMessage(err, "cannot get block number")
 	latestBlock := int64(latestBlockTemp)
 
 	for {
@@ -40,7 +40,7 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 			Topics: [][]common.Hash{{AaveLiquidationEventSig()}},
 		}
 		eventLogs, err := client.FilterLogs(context.Background(), query)
-		lib.Check(err)
+		lib.CheckWithMessage(err, "cannot execute query on chain:"+eventBundle.chainName)
 
 		for _, vLog := range eventLogs {
 			blockNumber := big.NewInt(int64(vLog.BlockNumber))
