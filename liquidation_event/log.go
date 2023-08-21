@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
+	influx "github.com/ernest_k/defi_stats/influx_repositores"
 	"github.com/ernest_k/defi_stats/lib"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -17,7 +19,14 @@ const STEP_FOR_LOG_BLOCK = 10_000
 
 func Log(fromTime time.Time, eventBundle EventBundle) {
 	fmt.Println("------------------------------------------------------------")
+	dbConnection := influx.CreateDB()
+	defer dbConnection.CloseDB()
+
+	var wgWriteToDB sync.WaitGroup
+
+	var resultToWrite []LiquidationCallEventEntityWithMeta
 	timestamp := time.Date(2042, 8, 7, 0, 0, 0, 0, time.UTC)
+
 	err := godotenv.Load()
 	lib.Check(err)
 
@@ -29,6 +38,7 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 	latestBlock := int64(latestBlockTemp)
 
 	for {
+		resultToWrite = []LiquidationCallEventEntityWithMeta{}
 		startWithBlock := latestBlock - STEP_FOR_LOG_BLOCK
 
 		query := ethereum.FilterQuery{
@@ -72,12 +82,38 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 				daName:                     daMetadata.Name,
 				timestamp:                  time.Now(),
 			}
-			fmt.Println("full event: ", entity)
+			resultToWrite = append(resultToWrite, entity)
 		}
 		if timestamp.Before(fromTime) {
+			writeToDB(fromTime, resultToWrite, dbConnection, &wgWriteToDB)
+			wgWriteToDB.Wait()
 			return
 		}
 		// start with last again
+		writeToDB(fromTime, resultToWrite, dbConnection, &wgWriteToDB)
 		latestBlock = startWithBlock
+	}
+}
+
+func writeToDB(fromTime time.Time, resultToWrite []LiquidationCallEventEntityWithMeta, dbConnection *influx.Connection, wgWriteToDB *sync.WaitGroup) {
+	wgWriteToDB.Add(1)
+	go writesToDBWithoutPrice(resultToWrite, dbConnection)
+
+	twoHoursAgo := time.Now().Add(-2 * time.Hour)
+	if fromTime.After(twoHoursAgo) {
+		wgWriteToDB.Add(1)
+		go writesToDBWithPrice(resultToWrite, dbConnection)
+	}
+}
+
+func writesToDBWithoutPrice(resultToWrite []LiquidationCallEventEntityWithMeta, dbConnection *influx.Connection) {
+	for _, resultEntity := range resultToWrite {
+		dbConnection.WriteEventLogWoPrice(resultEntity)
+	}
+}
+
+func writesToDBWithPrice(resultToWrite []LiquidationCallEventEntityWithMeta, dbConnection *influx.Connection) {
+	for _, resultEntity := range resultToWrite {
+		dbConnection.WriteEventLog(resultEntity)
 	}
 }

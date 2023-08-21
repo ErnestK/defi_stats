@@ -9,6 +9,33 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
+type Connection struct {
+	client   influxdb2.Client
+	writeApi api.WriteAPI
+}
+
+func CreateDB() *Connection {
+	client := influxdb2.NewClientWithOptions(
+		"http://localhost:8086",
+		"r_g71oNQ==",
+		influxdb2.DefaultOptions(),
+	)
+
+	writeAPI := writeAPI(client)
+	errorsCh := writeAPI.Errors()
+	go logErrors(errorsCh)
+
+	return &Connection{
+		client:   client,
+		writeApi: writeAPI,
+	}
+}
+
+func (influxConnection *Connection) CloseDB() {
+	influxConnection.writeApi.Flush()
+	influxConnection.client.Close()
+}
+
 func client() influxdb2.Client {
 	return influxdb2.NewClientWithOptions(
 		"http://localhost:8086",

@@ -27,38 +27,38 @@ type LiquidationCallEventEntity struct {
 	ReceiveAToken              bool
 }
 
-func (event LiquidationCallEventEntityWithMeta) getTimestamp() time.Time {
+func (event LiquidationCallEventEntityWithMeta) GetTimestamp() time.Time {
 	return event.timestamp
 }
 
-func (event LiquidationCallEventEntityWithMeta) getLiquidator() string {
+func (event LiquidationCallEventEntityWithMeta) GetLiquidator() string {
 	return event.liquidationCallEventEntity.Liquidator.Hex()
 }
 
-func (event LiquidationCallEventEntityWithMeta) getLiquidateUser() string {
+func (event LiquidationCallEventEntityWithMeta) GetLiquidateUser() string {
 	return event.liquidationCallEventEntity.User.Hex()
 }
 
-func (event LiquidationCallEventEntityWithMeta) getCollaterelAssetInUsd() float64 {
+func (event LiquidationCallEventEntityWithMeta) GetCollaterelAssetInUsd() float64 {
 	return event.caInUsd
 }
 
-func (event LiquidationCallEventEntityWithMeta) getDebtAssetInUsd() float64 {
+func (event LiquidationCallEventEntityWithMeta) GetDebtAssetInUsd() float64 {
 	return event.daInUsd
 }
 
-func (event LiquidationCallEventEntityWithMeta) getChainName() string {
+func (event LiquidationCallEventEntityWithMeta) GetChainName() string {
 	return event.chainName
 }
 
-func (event LiquidationCallEventEntityWithMeta) getCaName() string {
+func (event LiquidationCallEventEntityWithMeta) GetCaName() string {
 	return event.caName
 }
 
-func (event LiquidationCallEventEntityWithMeta) getDaName() string {
+func (event LiquidationCallEventEntityWithMeta) GetDaName() string {
 	return event.daName
 }
 
-func (event LiquidationCallEventEntityWithMeta) getExchangeName() string {
+func (event LiquidationCallEventEntityWithMeta) GetExchangeName() string {
 	return "aave3"
 }

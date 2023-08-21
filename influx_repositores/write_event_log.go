@@ -7,43 +7,33 @@ import (
 )
 
 type LiquiadatedEventData interface {
-	getLiquidator() string
-	getLiquidateUser() string
-	getCollaterelAssetInUsd() float64
-	getDebtAssetInUsd() float64
-	getChainName() string
-	getCaName() string
-	getDaName() string
-	getExchangeName() string
-	getTimestamp() time.Time
+	GetLiquidator() string
+	GetLiquidateUser() string
+	GetCollaterelAssetInUsd() float64
+	GetDebtAssetInUsd() float64
+	GetChainName() string
+	GetCaName() string
+	GetDaName() string
+	GetExchangeName() string
+	GetTimestamp() time.Time
 }
 
-func WriteEventLog(liquiadatedEventData LiquiadatedEventData) {
-	// todo: maybe should open once and pass it
-	client := client()
-	defer client.Close()
-
-	writeAPI := writeAPI(client)
-	defer writeAPI.Flush()
-
-	errorsCh := writeAPI.Errors()
-	go logErrors(errorsCh)
-
+func (influxConnection *Connection) WriteEventLog(liquiadatedEventEntity LiquiadatedEventData) {
 	p := influxdb2.NewPoint(
 		"event_logs",
 		map[string]string{
-			"exchange":         liquiadatedEventData.getExchangeName(),
-			"chain_name":       liquiadatedEventData.getChainName(),
-			"liquiadator":      liquiadatedEventData.getLiquidator(),
-			"liquiadated_user": liquiadatedEventData.getLiquidateUser(),
-			"ca_name":          liquiadatedEventData.getCaName(),
-			"da_name":          liquiadatedEventData.getDaName(),
+			"exchange":         liquiadatedEventEntity.GetExchangeName(),
+			"chain_name":       liquiadatedEventEntity.GetChainName(),
+			"liquiadator":      liquiadatedEventEntity.GetLiquidator(),
+			"liquiadated_user": liquiadatedEventEntity.GetLiquidateUser(),
+			"ca_name":          liquiadatedEventEntity.GetCaName(),
+			"da_name":          liquiadatedEventEntity.GetDaName(),
 		},
 		map[string]interface{}{
-			"collaterel_price_usd": liquiadatedEventData.getCollaterelAssetInUsd(),
-			"debt_price_usd":       liquiadatedEventData.getDebtAssetInUsd(),
+			"collaterel_price_usd": liquiadatedEventEntity.GetCollaterelAssetInUsd(),
+			"debt_price_usd":       liquiadatedEventEntity.GetDebtAssetInUsd(),
 		},
-		liquiadatedEventData.getTimestamp(),
+		liquiadatedEventEntity.GetTimestamp(),
 	)
-	writeAPI.WritePoint(p)
+	influxConnection.writeApi.WritePoint(p)
 }
