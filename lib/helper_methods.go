@@ -78,6 +78,7 @@ func CoinMetadataForAddress(address common.Address, client *ethclient.Client) To
 	instance, err := erc20.NewErc20(address, client)
 	Check(err)
 
+	// TODO: here I should check Redis and write into Redis if not exists
 	opts := bind.CallOpts{
 		Pending:     false,
 		From:        common.Address{},

@@ -31,6 +31,8 @@ func main() {
 		fmt.Println("price: ", price)
 	}
 	if arg1 == "3" {
-		influx_repositores.WriteTest()
+		for i := 0; i < 100; i++ {
+			influx_repositores.WriteTest()
+		}
 	}
 }

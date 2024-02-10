@@ -1,6 +1,7 @@
 package influx_repositores
 
 import (
+	"context"
 	"math/rand"
 	"time"
 
@@ -13,12 +14,13 @@ func WriteTest() {
 
 	org := "defi_stats"
 	bucket := "prod"
-	writeAPI := client.WriteAPI(org, bucket)
-	defer writeAPI.Flush()
+	// writeAPI := client.WriteAPI(org, bucket)
+	// Get blocking write client
+	writeAPI := client.WriteAPIBlocking(org, bucket)
 
-	errorsCh := writeAPI.Errors()
-	// Create go proc for reading and logging errors
-	go logErrors(errorsCh)
+	// errorsCh := writeAPI.Errors()
+	// // Create go proc for reading and logging errors
+	// go logErrors(errorsCh)
 
 	// write some points
 	for i := 0; i < 100; i++ {
@@ -33,11 +35,11 @@ func WriteTest() {
 				"temperature": rand.Float64() * 80.0,
 				"disk_free":   rand.Float64() * 1000.0,
 				"disk_total":  (i/10 + 1) * 1000000,
-				"mem_total":   (i/100 + 1) * 10000000,
 				"mem_free":    rand.Uint64(),
 			},
 			time.Now())
-		// write asynchronously
-		writeAPI.WritePoint(p)
+
+		writeAPI.WritePoint(context.Background(), p)
 	}
+	writeAPI.Flush(context.Background())
 }

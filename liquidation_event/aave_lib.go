@@ -91,7 +91,7 @@ func GetAssetPriceAaveV3(tokenAddress common.Address, client *ethclient.Client, 
 	floatTokenValue, err := strconv.ParseFloat(stringValue, 64)
 	lib.Check(err)
 
-	// for v3 base price uas and decimal 8
+	// for v3 base price usd and decimal 8
 	result := floatTokenValue / math.Pow(10, float64(8))
 
 	return result

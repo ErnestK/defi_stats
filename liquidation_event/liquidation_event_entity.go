@@ -1,9 +1,11 @@
 package liquidation_event
 
 import (
+	"math"
 	"math/big"
 	"time"
 
+	"github.com/ernest_k/defi_stats/lib"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -12,8 +14,8 @@ type LiquidationCallEventEntityWithMeta struct {
 	caInUsd                    float64
 	daInUsd                    float64
 	chainName                  string
-	caName                     string
-	daName                     string
+	caMetadata                 lib.TokenMetadataEntity
+	daMetadata                 lib.TokenMetadataEntity
 	timestamp                  time.Time
 }
 
@@ -52,11 +54,25 @@ func (event LiquidationCallEventEntityWithMeta) GetChainName() string {
 }
 
 func (event LiquidationCallEventEntityWithMeta) GetCaName() string {
-	return event.caName
+	return event.caMetadata.Name
 }
 
 func (event LiquidationCallEventEntityWithMeta) GetDaName() string {
-	return event.daName
+	return event.daMetadata.Name
+}
+
+func (event LiquidationCallEventEntityWithMeta) GetDebtToCover() *big.Float {
+	debtInFloat := new(big.Float).SetInt(event.liquidationCallEventEntity.DebtToCover)
+	denominator := new(big.Float).SetFloat64(math.Pow(10, float64(event.daMetadata.Decimal)))
+
+	return new(big.Float).Quo(debtInFloat, denominator)
+}
+
+func (event LiquidationCallEventEntityWithMeta) GetLiquidatedCollateralAmount() *big.Float {
+	debtInFloat := new(big.Float).SetInt(event.liquidationCallEventEntity.LiquidatedCollateralAmount)
+	denominator := new(big.Float).SetFloat64(math.Pow(10, float64(event.caMetadata.Decimal)))
+
+	return new(big.Float).Quo(debtInFloat, denominator)
 }
 
 func (event LiquidationCallEventEntityWithMeta) GetExchangeName() string {

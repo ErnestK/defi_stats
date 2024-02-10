@@ -55,8 +55,8 @@ func Subscribe(eventBundle EventBundle) {
 				caInUsd:                    caPrice,
 				daInUsd:                    daPrice,
 				chainName:                  eventBundle.chainName,
-				caName:                     caMetadata.Name,
-				daName:                     daMetadata.Name,
+				caMetadata:                 caMetadata,
+				daMetadata:                 daMetadata,
 				timestamp:                  time.Now(),
 			}
 			fmt.Println("full event: ", entity)

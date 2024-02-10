@@ -55,13 +55,9 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 		for _, vLog := range eventLogs {
 			blockNumber := big.NewInt(int64(vLog.BlockNumber))
 			timestamp = lib.ShowBlockDate(blockNumber, client)
-			fmt.Println("block created at:", timestamp)
-			fmt.Println("block num:", blockNumber)
 
 			liquidationCallEventEntity := LiquidationCallEventEntity{}
 			DeserializeEventLog(&liquidationCallEventEntity, vLog)
-			fmt.Println("for chain: ", eventBundle.chainName)
-			ShowLiquidationEventInfo(&liquidationCallEventEntity, vLog)
 
 			caMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.CollateralAsset, client)
 			daMetadata := lib.CoinMetadataForAddress(liquidationCallEventEntity.DebtAsset, client)
@@ -69,51 +65,34 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 			caPrice := GetAssetPriceAaveV3(liquidationCallEventEntity.CollateralAsset, client, eventBundle.oracleAddress)
 			daPrice := GetAssetPriceAaveV3(liquidationCallEventEntity.DebtAsset, client, eventBundle.oracleAddress)
 
-			fmt.Println("ca name: ", caMetadata.Name)
-			fmt.Println("caPrice: ", caPrice)
-			fmt.Println("da name: ", daMetadata.Name)
-			fmt.Println("daPrice: ", daPrice)
 			entity := LiquidationCallEventEntityWithMeta{
 				liquidationCallEventEntity: liquidationCallEventEntity,
 				caInUsd:                    caPrice,
 				daInUsd:                    daPrice,
 				chainName:                  eventBundle.chainName,
-				caName:                     caMetadata.Name,
-				daName:                     daMetadata.Name,
+				caMetadata:                 caMetadata,
+				daMetadata:                 daMetadata,
 				timestamp:                  time.Now(),
 			}
 			resultToWrite = append(resultToWrite, entity)
 		}
 		if timestamp.Before(fromTime) {
-			writeToDB(fromTime, resultToWrite, dbConnection, &wgWriteToDB)
-			wgWriteToDB.Wait()
-			return
+			wgWriteToDB.Add(1)
+			go writeToDB(fromTime, resultToWrite, dbConnection, &wgWriteToDB)
+			break
 		}
+		wgWriteToDB.Add(1)
+		go writeToDB(fromTime, resultToWrite, dbConnection, &wgWriteToDB)
 		// start with last again
-		writeToDB(fromTime, resultToWrite, dbConnection, &wgWriteToDB)
 		latestBlock = startWithBlock
 	}
+
+	wgWriteToDB.Wait()
 }
 
 func writeToDB(fromTime time.Time, resultToWrite []LiquidationCallEventEntityWithMeta, dbConnection *influx.Connection, wgWriteToDB *sync.WaitGroup) {
-	wgWriteToDB.Add(1)
-	go writesToDBWithoutPrice(resultToWrite, dbConnection)
-
-	twoHoursAgo := time.Now().Add(-2 * time.Hour)
-	if fromTime.After(twoHoursAgo) {
-		wgWriteToDB.Add(1)
-		go writesToDBWithPrice(resultToWrite, dbConnection)
-	}
-}
-
-func writesToDBWithoutPrice(resultToWrite []LiquidationCallEventEntityWithMeta, dbConnection *influx.Connection) {
-	for _, resultEntity := range resultToWrite {
-		dbConnection.WriteEventLogWoPrice(resultEntity)
-	}
-}
-
-func writesToDBWithPrice(resultToWrite []LiquidationCallEventEntityWithMeta, dbConnection *influx.Connection) {
 	for _, resultEntity := range resultToWrite {
 		dbConnection.WriteEventLog(resultEntity)
 	}
+	wgWriteToDB.Done()
 }
