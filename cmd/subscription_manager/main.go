@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ernest_k/defi_stats/influx_repositores"
 	"github.com/ernest_k/defi_stats/lib"
 	"github.com/ernest_k/defi_stats/liquidation_event"
+	"github.com/ernest_k/defi_stats/repositories/influx"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -32,7 +32,7 @@ func main() {
 	}
 	if arg1 == "3" {
 		for i := 0; i < 100; i++ {
-			influx_repositores.WriteTest()
+			influx.WriteTest()
 		}
 	}
 }

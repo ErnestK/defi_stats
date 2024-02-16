@@ -31,7 +31,7 @@ func LogManager(fromTime time.Time) {
 	Log(
 		interval,
 		EventBundle{
-			chainName:     "Polygon mainnet",
+			chainName:     "Polygon_mainnet",
 			connectUrl:    os.Getenv("PLG_MN_ALCH_HTTPS_URL"),
 			poolAddress:   common.HexToAddress(os.Getenv("AAVE3_PLG_MN_POOL_ADDRESS")),
 			oracleAddress: common.HexToAddress(os.Getenv("AAVE3_PLG_MN_ORACLE_ADDRESS")),
@@ -44,7 +44,7 @@ func LogManager(fromTime time.Time) {
 	Log(
 		interval,
 		EventBundle{
-			chainName:     "ETH mainnet",
+			chainName:     "ETH_mainnet",
 			connectUrl:    os.Getenv("ETH_MN_ALC_HTTPS_URL"),
 			poolAddress:   common.HexToAddress(os.Getenv("AAVE3_ETH_MN_POOL_ADDRESS")),
 			oracleAddress: common.HexToAddress(os.Getenv("AAVE3_ETH_MN_ORACLE_ADDRESS")),
@@ -57,7 +57,7 @@ func LogManager(fromTime time.Time) {
 	Log(
 		interval,
 		EventBundle{
-			chainName:     "Arbutrum mainnet",
+			chainName:     "Arbutrum_mainnet",
 			connectUrl:    os.Getenv("ARB_MN_ALC_HTTPS_URL"),
 			poolAddress:   common.HexToAddress(os.Getenv("AAVE3_ARB_MN_POOL_ADDRESS")),
 			oracleAddress: common.HexToAddress(os.Getenv("AAVE3_ARB_MN_ORACLE_ADDRESS")),
@@ -70,7 +70,7 @@ func LogManager(fromTime time.Time) {
 	Log(
 		interval,
 		EventBundle{
-			chainName:     "Optimism mainnet",
+			chainName:     "Optimism_mainnet",
 			connectUrl:    os.Getenv("OPT_MN_ALC_HTTPS_URL"),
 			poolAddress:   common.HexToAddress(os.Getenv("AAVE3_OPT_MN_POOL_ADDRESS")),
 			oracleAddress: common.HexToAddress(os.Getenv("AAVE3_OPT_MN_ORACLE_ADDRESS")),
