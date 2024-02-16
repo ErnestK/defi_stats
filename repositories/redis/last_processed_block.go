@@ -38,7 +38,7 @@ func GetLastProcessedBlock(latestBlockInChain int64, chainName string) int64 {
 	if err == redis.Nil {
 		// Key does not exist
 		WriteLastProcessedBlock(chainName, latestBlockInChain)
-		return latestBlockInChain
+		return latestBlockInChain - 10_000
 	} else if err != nil {
 		// Some other error occurred
 		lib.CheckWithMessage(err, "cannot connect to redis")

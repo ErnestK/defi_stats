@@ -44,14 +44,16 @@ func (influxConnection *Connection) WriteEventLog(liquiadatedEventEntity Liquiad
 	// fmt.Println("liquiadatedEventEntity.GetDebtAssetInUsd(): ", liquiadatedEventEntity.GetDebtAssetInUsd())
 	// fmt.Println("liquiadatedEventEntity.GetLiquidatedCollateralAmount(): ", liquiadatedEventEntity.GetLiquidatedCollateralAmount())
 	// fmt.Println("liquiadatedEventEntity.GetDebtToCover(): ", liquiadatedEventEntity.GetDebtToCover())
-	caInUsd := new(big.Float).Mul(
+	caInUsd, _ := new(big.Float).Mul(
 		new(big.Float).SetFloat64(liquiadatedEventEntity.GetCollaterelAssetInUsd()),
 		liquiadatedEventEntity.GetLiquidatedCollateralAmount(),
-	)
-	daInUsd := new(big.Float).Mul(
+	).Float64()
+	daInUsd, _ := new(big.Float).Mul(
 		new(big.Float).SetFloat64(liquiadatedEventEntity.GetDebtAssetInUsd()),
 		liquiadatedEventEntity.GetDebtToCover(),
-	)
+	).Float64()
+	liquidatedCA, _ := liquiadatedEventEntity.GetLiquidatedCollateralAmount().Float64()
+	debtToCover, _ := liquiadatedEventEntity.GetDebtToCover().Float64()
 
 	// fmt.Println("caInUsd: ", caInUsd)
 	fmt.Println("daInUsd: ", daInUsd)
@@ -70,8 +72,8 @@ func (influxConnection *Connection) WriteEventLog(liquiadatedEventEntity Liquiad
 		map[string]interface{}{
 			"ca_coin_in_usd": liquiadatedEventEntity.GetCollaterelAssetInUsd(),
 			"da_coin_in_usd": liquiadatedEventEntity.GetDebtAssetInUsd(),
-			"ca_amount_coin": liquiadatedEventEntity.GetLiquidatedCollateralAmount(),
-			"da_amount_coin": liquiadatedEventEntity.GetDebtToCover(),
+			"ca_amount_coin": liquidatedCA,
+			"da_amount_coin": debtToCover,
 			"ca_amount_usd":  caInUsd,
 			"da_amount_usd":  daInUsd,
 		},
