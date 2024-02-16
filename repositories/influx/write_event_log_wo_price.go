@@ -1,4 +1,4 @@
-package influx_repositores
+package influx
 
 import (
 	"time"
