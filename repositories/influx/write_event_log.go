@@ -31,19 +31,6 @@ func (influxConnection *Connection) WriteEventLog(liquiadatedEventEntity Liquiad
 	bucket := "prod"
 
 	writeAPI := client.WriteAPIBlocking(org, bucket)
-
-	// fmt.Println("<<------------------------------------------------------")
-	// fmt.Println("liquiadatedEventEntity.GetExchangeName(): ", liquiadatedEventEntity.GetExchangeName())
-	// fmt.Println("liquiadatedEventEntity.GetChainName(): ", liquiadatedEventEntity.GetChainName())
-	// fmt.Println("liquiadatedEventEntity.GetLiquidator(): ", liquiadatedEventEntity.GetLiquidator())
-	// fmt.Println("liquiadatedEventEntity.GetLiquidateUser(): ", liquiadatedEventEntity.GetLiquidateUser())
-	// fmt.Println("liquiadatedEventEntity.GetCaName(): ", liquiadatedEventEntity.GetCaName())
-	// fmt.Println("liquiadatedEventEntity.GetDaName(): ", liquiadatedEventEntity.GetDaName())
-	// fmt.Println("*********")
-	// fmt.Println("liquiadatedEventEntity.GetCollaterelAssetInUsd(): ", liquiadatedEventEntity.GetCollaterelAssetInUsd())
-	// fmt.Println("liquiadatedEventEntity.GetDebtAssetInUsd(): ", liquiadatedEventEntity.GetDebtAssetInUsd())
-	// fmt.Println("liquiadatedEventEntity.GetLiquidatedCollateralAmount(): ", liquiadatedEventEntity.GetLiquidatedCollateralAmount())
-	// fmt.Println("liquiadatedEventEntity.GetDebtToCover(): ", liquiadatedEventEntity.GetDebtToCover())
 	caInUsdBig := new(big.Float).Mul(
 		new(big.Float).SetFloat64(liquiadatedEventEntity.GetCollaterelAssetInUsd()),
 		liquiadatedEventEntity.GetLiquidatedCollateralAmount(),
