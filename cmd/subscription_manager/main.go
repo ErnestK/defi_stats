@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/joho/godotenv"
+
+	binance_connector "github.com/binance/binance-connector-go"
 )
 
 func main() {
@@ -35,4 +38,23 @@ func main() {
 			influx.WriteTest()
 		}
 	}
+
+	if arg1 == "4" {
+		OrderBook()
+	}
+}
+
+func OrderBook() {
+	baseURL := "https://api.binance.com"
+
+	client := binance_connector.NewClient("", "", baseURL)
+
+	// OrderBook
+	orderBook, err := client.NewOrderBookService().
+		Symbol("BTCUSDT").Do(context.Background())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(binance_connector.PrettyPrint(orderBook))
 }
