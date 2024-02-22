@@ -70,6 +70,15 @@ func (influxConnection *Connection) WriteEventLog(liquiadatedEventEntity Liquiad
 		},
 		liquiadatedEventEntity.GetTimestamp(),
 	)
-	writeAPI.WritePoint(context.Background(), p)
-	writeAPI.Flush(context.Background())
+	// Write data point
+	err := writeAPI.WritePoint(context.Background(), p)
+	if err != nil {
+		panic(fmt.Sprintf("failed to write point to InfluxDB: %v", err))
+	}
+
+	// Flush writes
+	err = writeAPI.Flush(context.Background())
+	if err != nil {
+		panic(fmt.Sprintf("failed to flush writes to InfluxDB: %v", err))
+	}
 }

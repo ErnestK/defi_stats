@@ -14,7 +14,7 @@ const LAST_PROCESSED_BLOCK_KEY = "last_processed_block"
 
 func WriteLastProcessedBlock(chainName string, lastBlockNumber int64) {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379", // Replace with your Redis server address
+		Addr:     "localhost:6380", // Replace with your Redis server address
 		Password: "",               // No password for local Redis, provide if needed
 		DB:       0,                // Default DB
 	})

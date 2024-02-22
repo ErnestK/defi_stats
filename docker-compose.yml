@@ -26,7 +26,7 @@ services:
   grafana:
     image: grafana/grafana-enterprise:latest
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - grafana-storage:/var/lib/grafana
       - ./data/grafana-provisioning/:/etc/grafana/provisioning
@@ -46,7 +46,7 @@ services:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
-      - '6379:6379'
+      - '6380:6379'
     volumes:
       - redis_storage:/redis/data
 
@@ -58,4 +58,3 @@ volumes:
 #    env_file:
 #      - .env
 #    entrypoint: ["./entrypoint.sh"]
-
