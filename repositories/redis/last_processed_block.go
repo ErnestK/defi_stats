@@ -4,34 +4,42 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/ernest_k/defi_stats/lib"
+	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
 const LAST_PROCESSED_BLOCK_KEY = "last_processed_block"
 
 func WriteLastProcessedBlock(chainName string, lastBlockNumber int64) {
+	err := godotenv.Load()
+	lib.Check(err)
+
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6380", // Replace with your Redis server address
-		Password: "",               // No password for local Redis, provide if needed
-		DB:       0,                // Default DB
+		Addr:     os.Getenv("REDIS_ADDRESS"), // Replace with your Redis server address
+		Password: "",                         // No password for local Redis, provide if needed
+		DB:       0,                          // Default DB
 	})
 
 	defer rdb.Close()
 
-	err := rdb.Set(context.Background(), collectionName(chainName), lastBlockNumber, 0).Err()
+	err = rdb.Set(context.Background(), collectionName(chainName), lastBlockNumber, 0).Err()
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 func GetLastProcessedBlock(latestBlockInChain int64, chainName string) int64 {
+	err := godotenv.Load()
+	lib.Check(err)
+
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6380", // Replace with your Redis server address
-		Password: "",               // No password for local Redis, provide if needed
-		DB:       0,                // Default DB
+		Addr:     os.Getenv("REDIS_ADDRESS"), // Replace with your Redis server address
+		Password: "",                         // No password for local Redis, provide if needed
+		DB:       0,                          // Default DB
 	})
 
 	val, err := rdb.Get(context.Background(), collectionName(chainName)).Result()
