@@ -47,6 +47,11 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 	lib.CheckWithMessage(err, "cannot execute query on chain:"+eventBundle.chainName)
 
 	for _, vLog := range eventLogs {
+		blockNumber := big.NewInt(0).SetUint64(vLog.BlockNumber)
+		block, err := client.BlockByNumber(context.Background(), blockNumber)
+		lib.Check(err)
+		timestamp := time.Unix(int64(block.Time()), 0)
+
 		liquidationCallEventEntity := LiquidationCallEventEntity{}
 		DeserializeEventLog(&liquidationCallEventEntity, vLog)
 
@@ -63,7 +68,7 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 			chainName:                  eventBundle.chainName,
 			caMetadata:                 caMetadata,
 			daMetadata:                 daMetadata,
-			timestamp:                  time.Now(),
+			timestamp:                  timestamp,
 		}
 		resultToWrite = append(resultToWrite, entity)
 	}

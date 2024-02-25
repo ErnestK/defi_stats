@@ -82,3 +82,6 @@ func (influxConnection *Connection) WriteEventLog(liquiadatedEventEntity Liquiad
 		panic(fmt.Sprintf("failed to flush writes to InfluxDB: %v", err))
 	}
 }
+
+// and
+//     r.chain_name == "Polygon_mainnet"
