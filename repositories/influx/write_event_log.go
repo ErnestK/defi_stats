@@ -23,6 +23,7 @@ type LiquiadatedEventData interface {
 	GetDebtToCover() *big.Float
 }
 
+// https://docs.influxdata.com/influxdb/cloud/tools/grafana/
 func (influxConnection *Connection) WriteEventLog(liquiadatedEventEntity LiquiadatedEventData) {
 	client := client()
 	defer client.Close()
