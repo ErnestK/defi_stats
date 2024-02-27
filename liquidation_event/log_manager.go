@@ -12,7 +12,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func LogManager(fromTime time.Time) {
+func LogManager() {
 	defer func() {
 		fmt.Printf("Program finish succesfully at: %v\n", time.Now())
 	}()
@@ -27,9 +27,7 @@ func LogManager(fromTime time.Time) {
 	signal.Notify(signalChan, os.Interrupt)
 	go cleanup(signalChan, done, &wgGroup)
 
-	interval := fromTime.Add(-1 * time.Hour)
 	Log(
-		interval,
 		EventBundle{
 			chainName:     "Polygon_mainnet",
 			connectUrl:    os.Getenv("PLG_MN_ALCH_HTTPS_URL"),
@@ -42,7 +40,6 @@ func LogManager(fromTime time.Time) {
 	)
 
 	Log(
-		interval,
 		EventBundle{
 			chainName:     "ETH_mainnet",
 			connectUrl:    os.Getenv("ETH_MN_ALC_HTTPS_URL"),
@@ -55,7 +52,6 @@ func LogManager(fromTime time.Time) {
 	)
 
 	Log(
-		interval,
 		EventBundle{
 			chainName:     "Arbutrum_mainnet",
 			connectUrl:    os.Getenv("ARB_MN_ALC_HTTPS_URL"),
@@ -68,7 +64,6 @@ func LogManager(fromTime time.Time) {
 	)
 
 	Log(
-		interval,
 		EventBundle{
 			chainName:     "Optimism_mainnet",
 			connectUrl:    os.Getenv("OPT_MN_ALC_HTTPS_URL"),

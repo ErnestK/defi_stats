@@ -16,11 +16,12 @@ import (
 
 const STEP_FOR_LOG_BLOCK = 10_000
 
-func Log(fromTime time.Time, eventBundle EventBundle) {
+func Log(eventBundle EventBundle) {
 	dbConnection := influx.CreateDB()
 	defer dbConnection.CloseDB()
 
 	var resultToWrite []LiquidationCallEventEntityWithMeta
+	var timestamp time.Time
 
 	err := godotenv.Load()
 	lib.Check(err)
@@ -49,8 +50,13 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 	for _, vLog := range eventLogs {
 		blockNumber := big.NewInt(0).SetUint64(vLog.BlockNumber)
 		block, err := client.BlockByNumber(context.Background(), blockNumber)
-		lib.Check(err)
-		timestamp := time.Unix(int64(block.Time()), 0)
+
+		if err != nil {
+			// Not supported for some l2 chains
+			timestamp = time.Now()
+		} else {
+			timestamp = time.Unix(int64(block.Time()), 0)
+		}
 
 		liquidationCallEventEntity := LiquidationCallEventEntity{}
 		DeserializeEventLog(&liquidationCallEventEntity, vLog)
@@ -73,11 +79,11 @@ func Log(fromTime time.Time, eventBundle EventBundle) {
 		resultToWrite = append(resultToWrite, entity)
 	}
 
-	writeToDB(fromTime, resultToWrite, dbConnection)
+	writeToDB(resultToWrite, dbConnection)
 	redis.WriteLastProcessedBlock(eventBundle.chainName, latestBlock)
 }
 
-func writeToDB(fromTime time.Time, resultToWrite []LiquidationCallEventEntityWithMeta, dbConnection *influx.Connection) {
+func writeToDB(resultToWrite []LiquidationCallEventEntityWithMeta, dbConnection *influx.Connection) {
 	for _, resultEntity := range resultToWrite {
 		dbConnection.WriteEventLog(resultEntity)
 	}
